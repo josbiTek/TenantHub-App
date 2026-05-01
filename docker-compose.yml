@@ -1,0 +1,28 @@
+services:
+  # Backend API - deploys to ECS Fargate in production
+  api:
+    build: ./api
+    ports:
+      - "8080:3000"
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+      - USE_SSM=false
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - TENANTS_TABLE=tenanthub-tenants
+      - PROJECTS_TABLE=tenanthub-projects
+      - TASKS_TABLE=tenanthub-tasks
+      - PAYMENTS_TABLE=tenanthub-payments
+      - PAYSTACK_SECRET_KEY=${PAYSTACK_SECRET_KEY}
+      - PAYMENT_CALLBACK_URL=http://localhost:3000/payment-callback
+
+  # Frontend - deploys to S3 + CloudFront in production
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TenantHub</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8f9fa;--surface:#fff;--text:#1a1a2e;--muted:#6c757d;
+  --primary:#0f4c81;--primary-light:#e8f0f8;--primary-hover:#0d3f6a;
+  --accent:#c77a00;--accent-light:#fff3e0;
+  --success:#16a34a;--success-bg:#dcfce7;
+  --danger:#dc2626;--danger-bg:#fee2e2;
+  --info:#0891b2;--info-bg:#e0f7fa;
+  --border:#dee2e6;--shadow:0 1px 3px rgba(0,0,0,.08);
+  --radius:6px;
+}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+a{color:var(--primary);text-decoration:none}
+.app-bar{background:var(--primary);color:#fff;padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.app-bar h1{font-size:18px;font-weight:600;letter-spacing:-.3px}
+.app-bar .tenant-info{font-size:13px;opacity:.85;display:flex;align-items:center;gap:12px}
+.app-bar .plan-badge{background:var(--accent);padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase}
+.app-bar .plan-badge.pro{background:var(--success)}
+.app-bar button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:6px 14px;border-radius:var(--radius);cursor:pointer;font-size:13px}
+.app-bar button:hover{background:rgba(255,255,255,.25)}
+.container{max-width:960px;margin:0 auto;padding:24px 20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card h2{font-size:16px;margin-bottom:12px;color:var(--text)}
+.card h3{font-size:14px;color:var(--muted);font-weight:500;margin-bottom:8px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:13px;font-weight:500;margin-bottom:4px;color:var(--muted)}
+.form-group input,.form-group select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:inherit}
+.form-group input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{padding:8px 18px;border:none;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .15s}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-hover)}
+.btn-accent{background:var(--accent);color:#fff}.btn-accent:hover{background:#a66800}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--danger);color:#fff;font-size:12px;padding:4px 10px}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}.btn-outline:hover{background:var(--bg)}
+.btn-sm{padding:4px 12px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-group{display:flex;gap:8px;margin-top:12px}
+.board{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:12px}
+.board-col{background:var(--bg);border-radius:var(--radius);padding:10px;min-height:120px}
+.board-col h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--border)}
+.board-col.todo h4{border-color:var(--info)}
+.board-col.in-progress h4{border-color:var(--accent)}
+.board-col.done h4{border-color:var(--success)}
+.task-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px 10px;margin-bottom:6px;font-size:13px}
+.task-card .task-title{font-weight:500;margin-bottom:4px}
+.task-card .task-meta{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.task-card select{font-size:11px;padding:1px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg)}
+.status-bar{padding:10px 16px;border-radius:var(--radius);margin-bottom:16px;font-size:13px}
+.status-bar.error{background:var(--danger-bg);color:#991b1b}
+.screen{display:none}.screen.active{display:block}
+.signup-wrapper{max-width:420px;margin:60px auto;padding:0 20px}
+.signup-wrapper .logo{text-align:center;margin-bottom:32px}
+.signup-wrapper .logo h1{font-size:28px;color:var(--primary);font-weight:700}
+.signup-wrapper .logo p{color:var(--muted);font-size:14px;margin-top:4px}
+.project-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;cursor:pointer;background:var(--surface);transition:border-color .15s}
+.project-item:hover{border-color:var(--primary)}
+.project-item .project-name{font-weight:500;font-size:14px}
+.project-item .project-meta{font-size:12px;color:var(--muted)}
+.plan-card{border:2px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;transition:border-color .15s}
+.plan-card.selected{border-color:var(--primary)}
+.plan-card .price{font-size:28px;font-weight:700;color:var(--primary);margin:8px 0}
+.plan-card .price span{font-size:14px;font-weight:400;color:var(--muted)}
+.plan-card ul{list-style:none;text-align:left;font-size:13px;margin-top:12px}
+.plan-card ul li{padding:4px 0}
+.plan-card ul li::before{content:"";display:inline-block;width:6px;height:6px;background:var(--success);border-radius:50%;margin-right:8px;vertical-align:middle}
+.payment-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.payment-row:last-child{border:none}
+.payment-status{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.payment-status.success{background:var(--success-bg);color:#166534}
+.payment-status.pending{background:var(--accent-light);color:#92400e}
+.nav-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border)}
+.nav-tabs button{background:none;border:none;padding:10px 18px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit}
+.nav-tabs button.active{color:var(--primary);border-bottom-color:var(--primary)}
+.nav-tabs button:hover{color:var(--text)}
+.empty{text-align:center;padding:32px;color:var(--muted);font-size:14px}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.api-banner{background:var(--info-bg);color:#164e63;padding:6px 16px;font-size:12px;text-align:center}
+@media(max-width:640px){.board{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!--
+  API_BASE: In local dev, nginx proxies /api to the backend.
+  In production, set window.TENANTHUB_API_URL to your API Gateway URL
+  before this script runs (or edit the variable below).
+-->
+
+<!-- ============ SIGNUP ============ -->
+<div id="signup-screen" class="screen active">
+  <div class="signup-wrapper">
+    <div class="logo">
+      <h1>TenantHub</h1>
+      <p>Multi-tenant project management</p>
+    </div>
+    <div class="card">
+      <h2>Create your workspace</h2>
+      <div id="signup-error"></div>
+      <div class="form-group">
+        <label>Company name</label>
+        <input type="text" id="signup-name" placeholder="Acme Corp">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="signup-email" placeholder="admin@acme.com">
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="createTenant()" id="signup-btn" style="width:100%">Create workspace</button>
+      </div>
+    </div>
+    <div id="existing-tenants" class="card" style="display:none">
+      <h3>Or select an existing workspace</h3>
+      <div id="tenant-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="dashboard-screen" class="screen">
+  <div class="app-bar">
+    <h1>TenantHub</h1>
+    <div class="tenant-info">
+      <span id="bar-tenant-name"></span>
+      <span class="plan-badge" id="bar-plan">FREE</span>
+      <button onclick="logout()">Switch workspace</button>
+    </div>
+  </div>
+  <div class="container">
+    <div class="nav-tabs">
+      <button class="active" onclick="switchTab('projects-tab',this)">Projects</button>
+      <button onclick="switchTab('billing-tab',this)">Billing</button>
+    </div>
+
+    <div id="projects-tab" class="tab-content">
+      <div class="card" id="new-project-card">
+        <h2>New project</h2>
+        <div class="form-row">
+          <div class="form-group"><label>Project name</label><input type="text" id="project-name" placeholder="Website Redesign"></div>
+          <div class="form-group"><label>Description</label><input type="text" id="project-desc" placeholder="Optional description"></div>
+        </div>
+        <button class="btn btn-primary" onclick="createProject()">Create project</button>
+      </div>
+      <div id="project-list"></div>
+      <div id="project-detail" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <button class="btn btn-outline btn-sm" onclick="backToProjects()">Back to projects</button>
+            <strong id="detail-project-name" style="margin-left:10px;font-size:16px"></strong>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deleteCurrentProject()">Delete project</button>
+        </div>
+        <div class="card">
+          <h3>Add task</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Title</label><input type="text" id="task-title" placeholder="Design the homepage"></div>
+            <div class="form-group"><label>Assignee</label><input type="text" id="task-assignee" placeholder="Name (optional)"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="createTask()">Add task</button>
+        </div>
+        <div class="board">
+          <div class="board-col todo"><h4>To Do</h4><div id="col-todo"></div></div>
+          <div class="board-col in-progress"><h4>In Progress</h4><div id="col-in-progress"></div></div>
+          <div class="board-col done"><h4>Done</h4><div id="col-done"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="billing-tab" class="tab-content" style="display:none">
+      <div class="card">
+        <h2>Upgrade your plan</h2>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Current plan: <strong id="billing-current-plan">Free</strong></p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="plan-card">
+            <h3>Free</h3>
+            <div class="price">N0<span>/month</span></div>
+            <ul><li>3 projects</li><li>10 tasks per project</li><li>1 member</li></ul>
+          </div>
+          <div class="plan-card selected">
+            <h3>Pro</h3>
+            <div class="price">N5,000<span>/month</span></div>
+            <ul><li>Unlimited projects</li><li>Unlimited tasks</li><li>10 members</li><li>Priority support</li></ul>
+            <button class="btn btn-accent" style="width:100%;margin-top:14px" onclick="initializePayment()" id="upgrade-btn">Upgrade to Pro</button>
+          </div>
+        </div>
+      </div>
+      <div class="card"><h2>Payment history</h2><div id="payment-list"><div class="empty">No payments yet</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PAYMENT CALLBACK ============ -->
+<div id="callback-screen" class="screen">
+  <div class="signup-wrapper">
+    <div class="logo"><h1>TenantHub</h1></div>
+    <div class="card" id="callback-card">
+      <div style="text-align:center;padding:20px">
+        <div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div>
+        <p>Verifying your payment...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/*
+  API_BASE configuration:
+  - Local dev (via nginx proxy):  "" (empty, uses relative /api paths)
+  - Local dev (direct):           "http://localhost:3000"
+  - Production (API Gateway):     "https://xxxxx.execute-api.us-east-1.amazonaws.com/prod"
+
+  To configure in production, either:
+  1. Set window.TENANTHUB_API_URL before this script
+  2. Or create a config.js that sets it:
+     <script src="config.js"><\/script>  (loaded before this script)
+*/
+const API = window.TENANTHUB_API_URL || "";
+
+let currentTenant = null;
+let currentProject = null;
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.getElementById(tabId).style.display = 'block';
+  document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (tabId === 'billing-tab') loadPayments();
+}
+
+// ---- Check for payment callback ----
+(function init() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('reference');
+  const tid = params.get('tenantId');
+  if (ref && tid && window.location.pathname.includes('payment-callback')) {
+    showScreen('callback-screen');
+    verifyPayment(ref, tid);
+    return;
+  }
+  loadExistingTenants();
+})();
+
+async function verifyPayment(ref, tenantId) {
+  try {
+    const res = await fetch(`${API}/api/payments/verify/${ref}`);
+    const data = await res.json();
+    const card = document.getElementById('callback-card');
+    if (data.status === 'success') {
+      card.innerHTML = '<div style="text-align:center;padding:20px"><div style="font-size:40px;margin-bottom:12px;color:var(--success)">&#10003;</div><h2 style="color:var(--success)">Payment successful</h2><p style="color:var(--muted);margin:8px 0">N' + data.amount.toLocaleString() + ' paid via ' + data.channel + '</p><p style="color:var(--muted);font-size:13px">Your workspace has been upgraded to Pro</p><button class="btn btn-primary" style="margin-top:16px" onclick="localStorage.setItem(\'tenanthub_tenant\',\'' + tenantId + '\');window.location.href=\'/\'">Go to dashboard</button></div>';
+    } else {
+      card.innerHTML = '<div style="text-align:center;padding:20px"><h2 style="color:var(--danger)">Payment not confirmed</h2><p style="color:var(--muted);margin:8px 0">Status: ' + data.status + '</p><button class="btn btn-primary" style="margin-top:16px" onclick="window.location.href=\'/\'">Back</button></div>';
+    }
+  } catch (err) {
+    document.getElementById('callback-card').innerHTML = '<div style="text-align:center;padding:20px"><h2 style="color:var(--danger)">Verification failed</h2><button class="btn btn-primary" style="margin-top:16px" onclick="window.location.href=\'/\'">Back</button></div>';
+  }
+}
+
+// ---- Tenants ----
+async function loadExistingTenants() {
+  const saved = localStorage.getItem('tenanthub_tenant');
+  if (saved) {
+    try {
+      const res = await fetch(`${API}/api/tenants/${saved}`);
+      if (res.ok) { currentTenant = await res.json(); enterDashboard(); return; }
+    } catch (e) {}
+    localStorage.removeItem('tenanthub_tenant');
+  }
+  try {
+    const res = await fetch(`${API}/api/tenants`);
+    const tenants = await res.json();
+    if (tenants.length > 0) {
+      document.getElementById('existing-tenants').style.display = 'block';
+      document.getElementById('tenant-list').innerHTML = tenants.map(t =>
+        '<div class="project-item" onclick="selectTenant(\'' + t.tenantId + '\')"><div><div class="project-name">' + esc(t.name) + '</div><div class="project-meta">' + esc(t.email) + '</div></div><span class="plan-badge ' + (t.plan === 'pro' ? 'pro' : '') + '" style="color:#fff">' + t.plan + '</span></div>'
+      ).join('');
+    }
+  } catch (e) {}
+}
+
+async function selectTenant(id) {
+  const res = await fetch(`${API}/api/tenants/${id}`);
+  currentTenant = await res.json();
+  localStorage.setItem('tenanthub_tenant', id);
+  enterDashboard();
+}
+
+async function createTenant() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  if (!name || !email) { showError('signup-error', 'Please enter company name and email'); return; }
+  const btn = document.getElementById('signup-btn');
+  btn.disabled = true; btn.textContent = 'Creating...';
+  try {
+    const res = await fetch(`${API}/api/tenants`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name, email}) });
+    currentTenant = await res.json();
+    localStorage.setItem('tenanthub_tenant', currentTenant.tenantId);
+    enterDashboard();
+  } catch (err) {
+    showError('signup-error', 'Failed to create workspace. Is the API running?');
+    btn.disabled = false; btn.textContent = 'Create workspace';
+  }
+}
+
+function enterDashboard() {
+  document.getElementById('bar-tenant-name').textContent = currentTenant.name;
+  const badge = document.getElementById('bar-plan');
+  badge.textContent = currentTenant.plan.toUpperCase();
+  badge.className = 'plan-badge' + (currentTenant.plan === 'pro' ? ' pro' : '');
+  document.getElementById('billing-current-plan').textContent = currentTenant.plan.charAt(0).toUpperCase() + currentTenant.plan.slice(1);
+  if (currentTenant.plan === 'pro') { document.getElementById('upgrade-btn').textContent = 'Current plan'; document.getElementById('upgrade-btn').disabled = true; }
+  showScreen('dashboard-screen');
+  loadProjects();
+}
+
+function logout() { localStorage.removeItem('tenanthub_tenant'); currentTenant = null; currentProject = null; window.location.href = '/'; }
+
+// ---- Projects ----
+async function loadProjects() {
+  const res = await fetch(`${API}/api/projects/tenant/${currentTenant.tenantId}`);
+  const projects = await res.json();
+  const c = document.getElementById('project-list');
+  if (projects.length === 0) { c.innerHTML = '<div class="empty">No projects yet. Create one above.</div>'; return; }
+  c.innerHTML = projects.map(p =>
+    '<div class="project-item" onclick="openProject(\'' + p.projectId + '\',\'' + esc(p.name) + '\')"><div><div class="project-name">' + esc(p.name) + '</div><div class="project-meta">' + (esc(p.description) || 'No description') + '</div></div><div class="project-meta">' + new Date(p.createdAt).toLocaleDateString() + '</div></div>'
+  ).join('');
+}
+
+async function createProject() {
+  const name = document.getElementById('project-name').value.trim();
+  const desc = document.getElementById('project-desc').value.trim();
+  if (!name) return;
+  await fetch(`${API}/api/projects`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({tenantId: currentTenant.tenantId, name, description: desc}) });
+  document.getElementById('project-name').value = ''; document.getElementById('project-desc').value = '';
+  loadProjects();
+}
+
+async function openProject(projectId, name) {
+  currentProject = projectId;
+  document.getElementById('detail-project-name').textContent = name;
+  document.getElementById('project-list').style.display = 'none';
+  document.getElementById('new-project-card').style.display = 'none';
+  document.getElementById('project-detail').style.display = 'block';
+  loadTasks();
+}
+
+function backToProjects() {
+  currentProject = null;
+  document.getElementById('project-list').style.display = 'block';
+  document.getElementById('new-project-card').style.display = 'block';
+  document.getElementById('project-detail').style.display = 'none';
+  loadProjects();
+}
+
+async function deleteCurrentProject() {
+  if (!confirm('Delete this project?')) return;
+  await fetch(`${API}/api/projects/${currentTenant.tenantId}/${currentProject}`, {method: 'DELETE'});
+  backToProjects();
+}
+
+// ---- Tasks ----
+async function loadTasks() {
+  const res = await fetch(`${API}/api/tasks/project/${currentProject}`);
+  const tasks = await res.json();
+  const cols = {todo: [], 'in-progress': [], done: []};
+  tasks.forEach(t => { if (cols[t.status]) cols[t.status].push(t); });
+  ['todo', 'in-progress', 'done'].forEach(status => {
+    const el = document.getElementById('col-' + status);
+    if (cols[status].length === 0) { el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px">No tasks</div>'; return; }
+    el.innerHTML = cols[status].map(t =>
+      '<div class="task-card"><div class="task-title">' + esc(t.title) + '</div><div class="task-meta"><span>' + esc(t.assignee) + '</span><select onchange="updateTask(\'' + t.projectId + '\',\'' + t.taskId + '\',this.value)"><option value="todo"' + (t.status==='todo'?' selected':'') + '>To Do</option><option value="in-progress"' + (t.status==='in-progress'?' selected':'') + '>In Progress</option><option value="done"' + (t.status==='done'?' selected':'') + '>Done</option></select></div></div>'
+    ).join('');
+  });
+}
+
+async function createTask() {
+  const title = document.getElementById('task-title').value.trim();
+  const assignee = document.getElementById('task-assignee').value.trim();
+  if (!title) return;
+  await fetch(`${API}/api/tasks`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({projectId: currentProject, tenantId: currentTenant.tenantId, title, assignee}) });
+  document.getElementById('task-title').value = ''; document.getElementById('task-assignee').value = '';
+  loadTasks();
+}
+
+async function updateTask(projectId, taskId, status) {
+  await fetch(`${API}/api/tasks/${projectId}/${taskId}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({status}) });
+  loadTasks();
+}
+
+// ---- Payments ----
+async function initializePayment() {
+  const btn = document.getElementById('upgrade-btn');
+  btn.disabled = true; btn.textContent = 'Redirecting...';
+  try {
+    const res = await fetch(`${API}/api/payments/initialize`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({tenantId: currentTenant.tenantId, email: currentTenant.email, amount: 5000, plan: 'pro'}) });
+    const data = await res.json();
+    if (data.authorization_url) { window.location.href = data.authorization_url; }
+    else { alert(data.error || 'Payment failed'); btn.disabled = false; btn.textContent = 'Upgrade to Pro'; }
+  } catch (err) { alert('Payment failed'); btn.disabled = false; btn.textContent = 'Upgrade to Pro'; }
+}
+
+async function loadPayments() {
+  try {
+    const res = await fetch(`${API}/api/payments/tenant/${currentTenant.tenantId}`);
+    const payments = await res.json();
+    const c = document.getElementById('payment-list');
+    if (payments.length === 0) { c.innerHTML = '<div class="empty">No payments yet</div>'; return; }
+    c.innerHTML = payments.sort((a,b) => b.createdAt.localeCompare(a.createdAt)).map(p =>
+      '<div class="payment-row"><div><strong>N' + p.amount.toLocaleString() + '</strong><span style="color:var(--muted);margin-left:8px;font-size:12px">' + p.plan + ' plan</span></div><div style="display:flex;align-items:center;gap:10px"><span style="color:var(--muted);font-size:12px">' + new Date(p.createdAt).toLocaleDateString() + '</span><span class="payment-status ' + p.status + '">' + p.status + '</span></div></div>'
+    ).join('');
+    // Refresh tenant plan
+    const tRes = await fetch(`${API}/api/tenants/${currentTenant.tenantId}`);
+    currentTenant = await tRes.json();
+    const badge = document.getElementById('bar-plan');
+    badge.textContent = currentTenant.plan.toUpperCase();
+    badge.className = 'plan-badge' + (currentTenant.plan === 'pro' ? ' pro' : '');
+    document.getElementById('billing-current-plan').textContent = currentTenant.plan.charAt(0).toUpperCase() + currentTenant.plan.slice(1);
+    if (currentTenant.plan === 'pro') { document.getElementById('upgrade-btn').textContent = 'Current plan'; document.getElementById('upgrade-btn').disabled = true; }
+  } catch (e) {}
+}
+
+// ---- Helpers ----
+function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function showError(id, msg) { const el = document.getElementById(id); el.innerHTML = '<div class="status-bar error">' + msg + '</div>'; setTimeout(() => el.innerHTML = '', 4000); }
+</script>
+</body>
+</html>

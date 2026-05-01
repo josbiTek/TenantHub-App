@@ -1,0 +1,20 @@
+{
+  "name": "tenanthub-api",
+  "version": "1.0.0",
+  "description": "TenantHub backend API - deploys to ECS Fargate",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test src/**/*.test.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0",
+    "@aws-sdk/client-ssm": "^3.600.0",
+    "@aws-sdk/client-secrets-manager": "^3.600.0",
+    "express": "^4.21.0",
+    "uuid": "^10.0.0",
+    "cors": "^2.8.5"
+  }
+}
