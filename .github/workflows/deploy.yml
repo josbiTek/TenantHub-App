@@ -1,23 +1,25 @@
 name: Deploy TenantHub API
+
 on:
   push:
     branches:
       - master
 
 env:
-  AWS_REGION: us-east-1
+  AWS_REGION:us-east-1
   ECR_REPOSITORY: tenanthub-api
   AWS_ACCOUNT_ID: 446037674421
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -29,23 +31,22 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -t ${{ env.ECR_REPOSITORY }} \
+            -t tenanthub-api \
             ./api
 
       - name: Tag Image
         run: |
-          docker tag ${{ env.ECR_REPOSITORY }}:latest \
-          ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+          docker tag tenanthub-api:latest \
+          446037674421.dkr.ecr.us-east-1.amazonaws.com/tenanthub-api:latest
 
       - name: Push Image
         run: |
           docker push \
-          ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+          446037674421.dkr.ecr.us-east-1.amazonaws.com/tenanthub-api:latest
 
       - name: Force ECS Deployment
         run: |
           aws ecs update-service \
             --cluster tenanthub-cluster \
             --service ${{ secrets.ECS_SERVICE }} \
-            --force-new-deployment \
-            --region ${{ env.AWS_REGION }}
+            --force-new-deployment
