@@ -6,7 +6,7 @@ on:
       - master
 
 env:
-  AWS_REGION:us-east-1
+  AWS_REGION: us-east-1
   ECR_REPOSITORY: tenanthub-api
   AWS_ACCOUNT_ID: 446037674421
 
