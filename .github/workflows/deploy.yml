@@ -3,7 +3,7 @@ name: Deploy TenantHub API
 on:
   push:
     branches:
-      - main
+      - master
 
 env:
   AWS_REGION: ADD us-east-1
